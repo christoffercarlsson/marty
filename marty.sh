@@ -41,7 +41,7 @@ perform_archive() {
   local archive_path=$(get_archive_path $1)
   local sync_path=$(get_sync_path $1)
   mkdir -p $DEST
-  tar -C $sync_path -czf $archive_path .
+  tar -C $sync_path --hard-dereference -czf $archive_path .
 }
 
 perform_sync() {
