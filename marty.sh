@@ -3,17 +3,33 @@
 set -e
 
 SOURCE=""
-DESTINATION=""
-SYNC=""
+DEST=""
 
-YESTERDAY="$SYNC/$(date -d yesterday +%Y%m%d)"
-TODAY="$SYNC/$(date +%Y%m%d)"
+DAYS=30
 
-if [ -d "$YESTERDAY" ]
-then
-	OPTS="--link-dest $YESTERDAY"
-else
-  OPTS=""
-fi
+remove_old_backups() {
+  local removal_cutoff_date=$(date -d "$DAYS days ago" +%Y%m%d)
+  local backup_dates=$(find -E $DEST -type d -regex ".*/[0-9]{8}" -exec bash -c 'basename "{}"' \;)
+  for backup_date in $backup_dates
+  do
+    if [ $removal_cutoff_date -gt $backup_date ]
+    then
+      rm -rf $(realpath "$DEST/$backup_date")
+    fi
+  done
+  unset backup_date
+}
 
-rsync -a --delete $OPTS "$SOURCE" "$TODAY"
+perform_backup() {
+  local yesterday="$DEST/$(date -d yesterday +%Y%m%d)"
+  local today="$DEST/$(date +%Y%m%d)"
+  local options=""
+  if [ -d "$yesterday" ]
+  then
+    options="--link-dest $yesterday"
+  fi
+  rsync -a --delete $options "$SOURCE" "$today"
+}
+
+remove_old_backups
+perform_backup
