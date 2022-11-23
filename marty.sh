@@ -22,10 +22,12 @@ fi
 SOURCE=$(realpath $1)
 DEST=$(realpath $2)
 
-DAYS=30
-
 BACKUP_PREFIX=$(basename $SOURCE)
 BACKUP_PATH="$DEST/$BACKUP_PREFIX"
+
+mkdir -p $BACKUP_PATH &> /dev/null
+
+BACKUP_DAYS=0
 
 get_archive_path() {
   echo "$BACKUP_PATH-$1.tar.gz"
@@ -42,11 +44,11 @@ remove_backup() {
 }
 
 remove_old_backups() {
-  local removal_cutoff_date=$(date -d "$DAYS days ago" +%Y%m%d)
+  local removal_cutoff_date=$(date -d "$BACKUP_DAYS days ago" +%Y%m%d)
   local backup_dates=$(find -E $BACKUP_PATH -type d -regex ".*/[0-9]{8}" -exec bash -c 'basename "{}"' \;)
   for backup_date in $backup_dates
   do
-    if [ $removal_cutoff_date -gt $backup_date ]
+    if [ $removal_cutoff_date -ge $backup_date ]
     then
       remove_backup $backup_date
     fi
@@ -77,5 +79,5 @@ perform_backup() {
   create_archive $today
 }
 
-perform_backup
 remove_old_backups
+perform_backup
