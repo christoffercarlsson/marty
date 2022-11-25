@@ -1,83 +1,90 @@
 #!/bin/bash
 
-if ! [ -d $1 ]
-then
-  echo "Source directory not found."
-  exit 1
-fi
-if [ -z "$2" ]
-then
-  echo "No backup directory given."
-  exit 1
-fi
-
-mkdir -p $2 &> /dev/null
-
-if ! [ -d $2 ]
-then
-  echo "Failed to create backup directory."
-  exit 1
-fi
-
-SOURCE=$(realpath $1)
-DEST=$(realpath $2)
-
-BACKUP_PREFIX=$(basename $SOURCE)
-BACKUP_PATH="$DEST/$BACKUP_PREFIX"
-
-mkdir -p $BACKUP_PATH &> /dev/null
-
-BACKUP_DAYS=0
-
-get_archive_path() {
-  echo "$BACKUP_PATH-$1.tar.gz"
+find_backups_and_archives() {
+  find -E $1 -maxdepth 1 -regex ".*[0-9]{14}(\.tar\.gz)?$"
 }
 
-get_sync_path() {
-  echo "$BACKUP_PATH/$1"
+find_backups() {
+  find -E $1 -maxdepth 1 -type d -regex ".*/[0-9]{14}$"
 }
 
-remove_backup() {
-  local archive_path=$(get_archive_path $1)
-  local sync_path=$(get_sync_path $1)
-  rm -rf $sync_path $archive_path &> /dev/null
+find_latest_backup() {
+  echo "$(find_backups $1 | sort -Vr | head -n 1)"
+}
+
+perform_sync() {
+  local backup_dir=$(realpath $2)
+  local latest_backup=$(find_latest_backup $backup_dir)
+  local this_backup="$backup_dir/$(date +%Y%m%d%H%M%S)"
+  local options=""
+  if [ -n "$latest_backup" ]
+  then
+    options="--link-dest $latest_backup"
+  fi
+  rsync -a --delete $options "$(realpath $1)/" $this_backup
+  echo $this_backup
+}
+
+check_input_dirs() {
+  if ! [ -d $1 ]
+  then
+    echo "Source directory not found: $1"
+    exit 1
+  fi
+  if ! [ -d $2 ]
+  then
+    echo "Destination directory not found: $2"
+    exit 1
+  fi
+}
+
+perform_backup() {
+  check_input_dirs $1 $2
+  perform_sync $1 $2 &> /dev/null
+}
+
+remove_path() {
+  rm -rf $1 &> /dev/null
+}
+
+create_archive() {
+  local backup_time=$(basename $1)
+  local backup_dir=$(dirname $1)
+  local backup_name=$(basename $backup_dir)
+  local archive_path="$backup_dir/$backup_name-$backup_time.tar.gz"
+  tar -C $1 --hard-dereference -czf $archive_path .
+}
+
+perform_archive() {
+  check_input_dirs $1 $2
+  local this_backup=$(perform_sync $1 $2)
+  create_archive $this_backup
+  remove_path $this_backup
 }
 
 remove_old_backups() {
-  local removal_cutoff_date=$(date -d "$BACKUP_DAYS days ago" +%Y%m%d)
-  local backup_dates=$(find -E $BACKUP_PATH -type d -regex ".*/[0-9]{8}" -exec bash -c 'basename "{}"' \;)
-  for backup_date in $backup_dates
+  local removal_cutoff_time=$(date -d "$2 days ago" +%Y%m%d%H%M%S)
+  local paths=$(find_backups_and_archives $1)
+  for path in $paths
   do
-    if [ $removal_cutoff_date -ge $backup_date ]
-    then
-      remove_backup $backup_date
+    if [[ $path =~ ([0-9]{14}) ]]
+    then 
+      [ $removal_cutoff_time -ge ${BASH_REMATCH[1]} ] && remove_path $path
     fi
   done
 }
 
-create_archive() {
-  local archive_path=$(get_archive_path $1)
-  local sync_path=$(get_sync_path $1)
-  tar -C $sync_path --hard-dereference -czf $archive_path .
-}
-
-perform_sync() {
-  local yesterday=$(get_sync_path $(date -d yesterday +%Y%m%d))
-  local today=$(get_sync_path $1)
-  local options=""
-  if [ -d $yesterday ]
-  then
-    options="--link-dest $yesterday"
-  fi
-  mkdir -p $today
-  rsync -a --delete $options "$SOURCE/" $today
-}
-
-perform_backup() {
-  local today=$(date +%Y%m%d)
-  perform_sync $today
-  create_archive $today
-}
-
-remove_old_backups
-perform_backup
+case "$1" in
+  "archive")
+    perform_archive $2 $3
+    ;;
+  "backup")
+    perform_backup $2 $3
+    ;;
+  "clean" | "clean-up" | "prune" | "remove")
+    remove_old_backups $2 $3
+    ;;
+  *)
+    echo "Unknown command"
+    ;;
+esac
