@@ -1,5 +1,14 @@
 #!/bin/bash
 
+DATE_CMD="date"
+TAR_CMD="tar --hard-dereference"
+
+if [[ "$(uname)" == "Darwin" ]]
+then
+  DATE_CMD="gdate"
+  TAR_CMD="tar"
+fi
+
 find_backups_and_archives() {
   find -E $1 -maxdepth 1 -regex ".*[0-9]{14}(\.tar\.gz)?$"
 }
@@ -9,13 +18,13 @@ find_backups() {
 }
 
 find_latest_backup() {
-  echo "$(find_backups $1 | sort -Vr | head -n 1)"
+  find_backups $1 | sort -Vr | head -n 1
 }
 
 perform_sync() {
   local backup_dir=$(realpath $2)
   local latest_backup=$(find_latest_backup $backup_dir)
-  local this_backup="$backup_dir/$(date +%Y%m%d%H%M%S)"
+  local this_backup="$backup_dir/$($DATE_CMD +%Y%m%d%H%M%S)"
   local options=""
   if [ -n "$latest_backup" ]
   then
@@ -52,7 +61,7 @@ create_archive() {
   local backup_dir=$(dirname $1)
   local backup_name=$(basename $backup_dir)
   local archive_path="$backup_dir/$backup_name-$backup_time.tar.gz"
-  tar -C $1 --hard-dereference -czf $archive_path .
+  $TAR_CMD -C $1 -czf $archive_path .
 }
 
 perform_archive() {
@@ -63,7 +72,7 @@ perform_archive() {
 }
 
 remove_old_backups() {
-  local removal_cutoff_time=$(date -d "$2 days ago" +%Y%m%d%H%M%S)
+  local removal_cutoff_time=$($DATE_CMD -d "$2 days ago" +%Y%m%d%H%M%S)
   local paths=$(find_backups_and_archives $1)
   for path in $paths
   do
