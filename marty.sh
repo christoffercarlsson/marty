@@ -9,6 +9,21 @@ then
   TAR_CMD="tar"
 fi
 
+cmd_exists() {
+  command -v $1 &> /dev/null
+}
+
+ensure_cmd() {
+  if ! cmd_exists $1
+  then
+    echo "Command not found: $1"
+    exit 1
+  fi
+}
+
+ensure_cmd $DATE_CMD
+ensure_cmd $TAR_CMD
+
 find_backups_and_archives() {
   find -E $1 -maxdepth 1 -regex ".*[0-9]{14}(\.tar\.gz)?$"
 }
@@ -34,21 +49,17 @@ perform_sync() {
   echo $this_backup
 }
 
-check_input_dirs() {
+ensure_dir() {
   if ! [ -d $1 ]
   then
-    echo "Source directory not found: $1"
-    exit 1
-  fi
-  if ! [ -d $2 ]
-  then
-    echo "Destination directory not found: $2"
+    echo "Directory not found: $1"
     exit 1
   fi
 }
 
 perform_backup() {
-  check_input_dirs $1 $2
+  ensure_dir $1
+  ensure_dir $2
   perform_sync $1 $2 &> /dev/null
 }
 
@@ -65,13 +76,15 @@ create_archive() {
 }
 
 perform_archive() {
-  check_input_dirs $1 $2
+  ensure_dir $1
+  ensure_dir $2
   local this_backup=$(perform_sync $1 $2)
   create_archive $this_backup
   remove_path $this_backup
 }
 
 remove_old_backups() {
+  ensure_dir $1
   local removal_cutoff_time=$($DATE_CMD -d "$2 days ago" +%Y%m%d%H%M%S)
   local paths=$(find_backups_and_archives $1)
   for path in $paths
