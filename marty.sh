@@ -36,17 +36,8 @@ find_latest_backup() {
   find_backups $1 | sort -Vr | head -n 1
 }
 
-perform_sync() {
-  local backup_dir=$(realpath $2)
-  local latest_backup=$(find_latest_backup $backup_dir)
-  local this_backup="$backup_dir/$($DATE_CMD +%Y%m%d%H%M%S)"
-  local options=""
-  if [ -n "$latest_backup" ]
-  then
-    options="--link-dest $latest_backup"
-  fi
-  rsync -a --delete $options "$(realpath $1)/" $this_backup
-  echo $this_backup
+sync_dirs() {
+  rsync -a --delete $3 "$(realpath $1)/" $2
 }
 
 ensure_dir() {
@@ -55,6 +46,25 @@ ensure_dir() {
     echo "Directory not found: $1"
     exit 1
   fi
+}
+
+restore_backup() {
+  ensure_dir $1
+  ensure_dir $2
+  sync_dirs "$1" "$2"
+}
+
+perform_sync() {
+  local backup_dir=$(realpath $2)
+  local latest_backup=$(find_latest_backup $backup_dir)
+  local this_backup="$backup_dir/$($DATE_CMD +%Y%m%d%H%M%S)"
+  local sync_options=""
+  if [ -n "$latest_backup" ]
+  then
+    sync_options="--link-dest $latest_backup"
+  fi
+  sync_dirs "$1" "$this_backup" "$sync_options"
+  echo $this_backup
 }
 
 perform_backup() {
@@ -105,6 +115,9 @@ case "$1" in
     ;;
   "clean" | "clean-up" | "prune" | "remove")
     remove_old_backups $2 $3
+    ;;
+  "restore")
+    restore_backup $2 $3
     ;;
   *)
     echo "Unknown command"
