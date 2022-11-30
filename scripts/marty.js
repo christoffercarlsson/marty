@@ -22,7 +22,10 @@ program
   .description('Create a compressed archive of a given directory')
   .argument('<source>', 'The directory to backup')
   .argument('<destination>', 'The directory in which to store the archive')
-  .action(archive)
+  .action(async (source, destination) => {
+    const archivePath = await archive(source, destination)
+    console.log(archivePath)
+  })
 
 program
   .command('backup')
@@ -32,7 +35,10 @@ program
     '<destination>',
     'The directory in which to store the backed up files'
   )
-  .action(backup)
+  .action(async (source, destination) => {
+    const backupPath = await backup(source, destination)
+    console.log(backupPath)
+  })
 
 program
   .command('remove')
@@ -42,7 +48,10 @@ program
   .description('Remove old backups from a given directory')
   .argument('<destination>', 'The path to the backup directory')
   .argument('[days]', 'Backups older than this number of days will be removed')
-  .action(remove)
+  .action(async (destination, days) => {
+    const removed = await remove(destination, days)
+    console.log(`${removed.join('\n')}`)
+  })
 
 program
   .command('restore')

@@ -39,7 +39,7 @@ const removeBackups = async (destination: string, days?: number) => {
   const timestamp = getRemovalTimestamp(days || 0)
   const entries = await findBackupEntries(dest)
   return removeEntries(
-    destination,
+    dest,
     entries.filter((entry) => entryShouldBeRemoved(timestamp, entry))
   )
 }
