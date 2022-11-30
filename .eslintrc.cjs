@@ -25,6 +25,12 @@ module.exports = {
         'plugin:@typescript-eslint/recommended',
         'plugin:@typescript-eslint/recommended-requiring-type-checking'
       ]
+    },
+    {
+      files: ['scripts/marty.js'],
+      rules: {
+        'node/no-unpublished-import': 'off'
+      }
     }
   ],
   extends: [

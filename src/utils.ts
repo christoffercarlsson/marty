@@ -1,11 +1,10 @@
 import { execFile } from 'node:child_process'
-import { Dirent, readFileSync, statSync } from 'node:fs'
+import { Dirent, statSync } from 'node:fs'
 import {
   readdir as readDirectory,
   rm as removeFileSystemPath
 } from 'node:fs/promises'
 import { resolve as resolvePath } from 'node:path/posix'
-import { fileURLToPath } from 'node:url'
 import { promisify } from 'node:util'
 import { BACKUP_PATH_RE } from './constants.js'
 
@@ -63,17 +62,4 @@ export const sync = async (
     ? ['--link-dest', link, ...defaultOptions]
     : defaultOptions
   await exec('rsync', options)
-}
-
-export const readPackageJson = () => {
-  const path = resolvePath(
-    fileURLToPath(import.meta.url),
-    '../../../package.json'
-  )
-  const json = readFileSync(path, { encoding: 'utf-8' })
-  return JSON.parse(json) as {
-    name: string
-    description: string
-    version: string
-  }
 }

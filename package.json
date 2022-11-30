@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "description": "Your personal data time traveller",
   "author": "Christoffer Carlsson <cc@christofferc.com>",
-  "bin": "./dist/src/cli.js",
+  "bin": "./scripts/marty.js",
   "bugs": {
     "url": "https://github.com/christoffercarlsson/marty/issues"
   },
@@ -34,7 +34,8 @@
   },
   "exports": "./dist/src/index.js",
   "files": [
-    "dist/src/**/*.{js,ts}"
+    "dist/src/**/*.{js,ts}",
+    "scripts/**/*.js"
   ],
   "license": "Unlicense",
   "repository": {
@@ -45,7 +46,7 @@
     "build": "rimraf dist && tsc",
     "format": "prettier --loglevel silent --write .",
     "lint": "eslint .",
-    "marty": "node --no-warnings dist/src/cli.js",
+    "marty": "node scripts/marty.js",
     "prepack": "npm run build",
     "test": "npm run build && rimraf coverage && NODE_OPTIONS='--experimental-vm-modules --no-warnings' npx jest --no-cache"
   },
