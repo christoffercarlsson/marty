@@ -20,10 +20,10 @@ const findLatestBackup = async (destination: string) => {
 }
 
 const backup = async (source: string, destination: string) => {
-  const backupPath = `${await ensureDirectory(destination)}/${getTimestamp(
-    new Date()
-  )}`
-  const link = await findLatestBackup(destination)
+  const dest = await ensureDirectory(destination)
+  const timestamp = getTimestamp(new Date())
+  const backupPath = `${dest}/${timestamp}`
+  const link = await findLatestBackup(dest)
   await createDirectory(backupPath)
   await sync(await ensureDirectory(source), backupPath, link)
   return backupPath

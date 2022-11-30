@@ -16,7 +16,7 @@ const getEntryTimestamp = (entry: Dirent) => {
 
 const entryShouldBeRemoved = (timestamp: string, entry: Dirent) => {
   const entryTimestamp = getEntryTimestamp(entry)
-  return compareString(timestamp, entryTimestamp) === 1
+  return compareString(timestamp, entryTimestamp) >= 0
 }
 
 const getRemovalTimestamp = (days: number) => {

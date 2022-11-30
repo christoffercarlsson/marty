@@ -19,14 +19,17 @@ const createArchive = async (backupPath: string) => {
   const options =
     platform() === 'darwin'
       ? defaultOptions
-      : ['--hard-dereference', ...defaultOptions]
+      : /* istanbul ignore next */
+        ['--hard-dereference', ...defaultOptions]
   await exec('tar', options)
   return archivePath
 }
 
-export const archive = async (source: string, destination: string) => {
+const archive = async (source: string, destination: string) => {
   const backupPath = await backup(source, destination)
   const archivePath = await createArchive(backupPath)
   await removePath(backupPath)
   return archivePath
 }
+
+export default archive
