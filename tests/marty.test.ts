@@ -9,7 +9,8 @@ import {
 import { tmpdir } from 'node:os'
 import { join as joinPath } from 'path/posix'
 import { archive, backup, remove, restore } from '../src'
-import { BACKUP_PATH_RE } from '../src/constants'
+
+const BACKUP_PATH_RE = /([0-9]{14})(\.tar\.gz)?$/
 
 const pathExists = (path: string) =>
   new Promise((resolve) => {

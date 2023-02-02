@@ -1,7 +1,7 @@
 import { platform } from 'node:os'
 import { format as formatPath, parse as parsePath } from 'node:path/posix'
-import backup from './backup.js'
-import { exec, removePath } from './utils.js'
+import backup from './backup'
+import { exec, removePath } from './utils'
 
 const getArchivePath = (backupPath: string) => {
   const { dir: destination, name: timestamp } = parsePath(backupPath)

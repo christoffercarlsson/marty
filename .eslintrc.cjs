@@ -56,6 +56,7 @@ module.exports = {
   rules: {
     'no-bitwise': 'off',
     'no-restricted-syntax': 'off',
-    'node/no-missing-import': 'off'
+    'node/no-missing-import': 'off',
+    'promise/always-return': 'off'
   }
 }

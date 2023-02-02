@@ -6,7 +6,7 @@ import {
 } from 'node:fs/promises'
 import { resolve as resolvePath } from 'node:path/posix'
 import { promisify } from 'node:util'
-import { BACKUP_PATH_RE } from './constants.js'
+import { BACKUP_PATH_RE } from './constants'
 
 export const compareString = (a: string, b: string) =>
   a.localeCompare(b, undefined, {

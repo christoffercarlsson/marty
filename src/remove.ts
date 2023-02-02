@@ -1,5 +1,5 @@
 import { Dirent } from 'fs'
-import { BACKUP_PATH_RE } from './constants.js'
+import { BACKUP_PATH_RE } from './constants'
 import {
   compareString,
   ensureDirectory,
@@ -7,7 +7,7 @@ import {
   getEntryPath,
   getTimestamp,
   removePath
-} from './utils.js'
+} from './utils'
 
 const getEntryTimestamp = (entry: Dirent) => {
   const matches = entry.name.match(BACKUP_PATH_RE)

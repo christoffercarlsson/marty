@@ -5,7 +5,7 @@ import {
   getEntryPath,
   getTimestamp,
   sync
-} from './utils.js'
+} from './utils'
 
 const findBackups = async (destination: string) => {
   const entries = await findBackupEntries(destination)

@@ -1,14 +1,20 @@
-#!/usr/bin/env node
 import { readFileSync } from 'node:fs'
 import { resolve as resolvePath } from 'node:path/posix'
 import { fileURLToPath } from 'node:url'
 import { Command } from 'commander'
-import { archive, backup, remove, restore } from '../dist/src/index.js'
+import { archive, backup, remove, restore } from './index'
 
 const readPackageJson = () => {
-  const path = resolvePath(fileURLToPath(import.meta.url), '../../package.json')
+  const path = resolvePath(
+    fileURLToPath(import.meta.url),
+    '../../../package.json'
+  )
   const json = readFileSync(path, { encoding: 'utf-8' })
-  return JSON.parse(json)
+  return JSON.parse(json) as {
+    name: string
+    description: string
+    version: string
+  }
 }
 
 const { name, description, version } = readPackageJson()
@@ -22,7 +28,7 @@ program
   .description('Create a compressed archive of a given directory')
   .argument('<source>', 'The directory to backup')
   .argument('<destination>', 'The directory in which to store the archive')
-  .action(async (source, destination) => {
+  .action(async (source: string, destination: string) => {
     const archivePath = await archive(source, destination)
     console.log(archivePath)
   })
@@ -35,7 +41,7 @@ program
     '<destination>',
     'The directory in which to store the backed up files'
   )
-  .action(async (source, destination) => {
+  .action(async (source: string, destination: string) => {
     const backupPath = await backup(source, destination)
     console.log(backupPath)
   })
@@ -48,7 +54,7 @@ program
   .description('Remove old backups from a given directory')
   .argument('<destination>', 'The path to the backup directory')
   .argument('[days]', 'Backups older than this number of days will be removed')
-  .action(async (destination, days) => {
+  .action(async (destination: string, days: number) => {
     const removed = await remove(destination, days)
     console.log(`${removed.join('\n')}`)
   })
